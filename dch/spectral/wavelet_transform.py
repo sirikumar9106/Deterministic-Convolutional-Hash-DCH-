@@ -1,6 +1,6 @@
 import numpy as np
 import pywt
-
+import cv2
 
 def compute_wavelet_decomposition(feature_map: np.ndarray):
     """
@@ -10,24 +10,22 @@ def compute_wavelet_decomposition(feature_map: np.ndarray):
     LL, (LH, HL, HH) = coefficients
     return LL, LH, HL, HH
 
-
-def extract_low_frequency_block(ll_band: np.ndarray, block_size: int = 16) -> np.ndarray:
+def spectral_feature_map(feature_map: np.ndarray, target_dimension: int = 8) -> np.ndarray:
     """
-    Extract the low-frequency block from the LL band.
+    FIXED: Instead of slicing LL[0:16], we capture the Magnitude of the 
+    feature map's energy and resize it to the target dimension.
     """
-    height, width = ll_band.shape
+    # 1. Decompose the feature map
+    LL, (LH, HL, HH) = pywt.dwt2(feature_map, 'haar')
 
-    if block_size > height or block_size > width:
-        raise ValueError("Block size larger than LL band dimensions")
+    # 2. FEATURE CONTEXT: In derivative maps (Sobel/Laplacian), 
+    # the energy is in the high-frequency bands (LH, HL, HH).
+    # We compute the Magnitude Map: M = sqrt(LH^2 + HL^2 + HH^2)
+    magnitude_map = np.sqrt(np.power(LH, 2) + np.power(HL, 2) + np.power(HH, 2))
+
+    # 3. RESIZE (Critical Fix): We resize the magnitude map to a small grid
+    # to ensure the hash represents the WHOLE image, not just a corner.
+    spectral_block = cv2.resize(magnitude_map, (target_dimension, target_dimension), 
+                                interpolation=cv2.INTER_AREA)
     
-    low_frequency_block = ll_band[0:block_size, 0:block_size]
-    return low_frequency_block
-
-
-def spectral_feature_map(feature_map: np.ndarray, block_size: int = 16) -> np.ndarray:
-    """
-    Complete spectral processing pipeline.
-    """
-    LL, LH, HL, HH = compute_wavelet_decomposition(feature_map)
-    low_frequency_block = extract_low_frequency_block(LL, block_size)
-    return low_frequency_block
+    return spectral_block
