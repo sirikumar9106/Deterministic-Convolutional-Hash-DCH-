@@ -1,66 +1,40 @@
-import matplotlib.pyplot as plt
 from dch.pipeline import generate_dch
+from dch.similarity.hamming import compute_similarity
 
 
-def hamming_distance(hash1, hash2):
-    distance = 0
-    for a, b in zip(hash1, hash2):
-        if a != b:
-            distance += 1
-    return distance
+def compare_images(base_image: str, target_image: str):
 
+    base_hash = generate_dch(base_image)
 
-def hash_images(image_paths):
-    results = {}
+    target_hash = generate_dch(target_image)
 
-    for path in image_paths:
-        result = generate_dch(path)
-        results[path] = result
-        print("\n===== HASH RESULT =====")
-        print("Image:", path)
-        print("Binary length:", len(result["bits"]))
-        print("Hex Hash:", result["hex"])
+    similarity = compute_similarity(base_hash["bits"], target_hash["bits"])
 
-    return results
-
-
-def compare_hashes(results):
-    keys = list(results.keys())
-
-    print("\n===== HASH SIMILARITY =====")
-
-    for i in range(len(keys)):
-        for j in range(i + 1, len(keys)):
-
-            img1 = keys[i]
-            img2 = keys[j]
-
-            hash1 = results[img1]["bits"]
-            hash2 = results[img2]["bits"]
-
-            distance = hamming_distance(hash1, hash2)
-
-            similarity = 1 - (distance / len(hash1))
-
-            print(f"{img1} vs {img2}")
-            print("Hamming distance:", distance)
-            print("Similarity:", round(similarity * 100, 2), "%\n")
+    print("------------------------------------")
+    print("Base Image :", base_image)
+    print("Target Image :", target_image)
+    print("Base Hash :", base_hash["hex"])
+    print("Target Hash :", target_hash["hex"])
+    print("Similarity :", round(similarity * 100, 2), "%")
+    print("------------------------------------\n")
 
 
 def main():
 
-    images = [
-        "test.png",
+    base_image = "test.png"
+
+    test_images = [
         "test1.png",
         "test2.png",
         "test3.png",
         "test4.png"
     ]
 
-    results = hash_images(images)
+    for image in test_images:
 
-    compare_hashes(results)
+        compare_images(base_image, image)
 
 
 if __name__ == "__main__":
+
     main()
