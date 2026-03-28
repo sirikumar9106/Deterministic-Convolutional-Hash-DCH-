@@ -1,4 +1,4 @@
-# Deterministic Convolutional Hashi (DCH) — Dual-Path Perceptual Hashing
+# Deterministic Convolutional Hashing (DCH) — Dual-Path Perceptual Hashing
 
 A zero-model, deterministic perceptual image hashing system designed to detect duplicate, cropped, scaled, mirrored, and rotated versions of images — without any trained neural network.
 
